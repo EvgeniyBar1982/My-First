@@ -1,0 +1,114 @@
+Задача:
+Что вы должны сделать в консоли Django?
+
+1)Создать двух пользователей (с помощью метода User.objects.create_user('username')).
+2)Создать два объекта модели Author, связанные с пользователями.
+3)Добавить 4 категории в модель Category.
+4)Добавить 2 статьи и 1 новость.
+5)Присвоить им категории (как минимум в одной статье/новости должно быть не меньше 2 категорий).
+6)Создать как минимум 4 комментария к разным объектам модели Post (в каждом объекте должен быть как минимум один комментарий).
+7)Применяя функции like() и dislike() к статьям/новостям и комментариям, скорректировать рейтинги этих объектов.
+8)Обновить рейтинги пользователей.
+9)Вывести username и рейтинг лучшего пользователя (применяя сортировку и возвращая поля первого объекта).
+10)Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи, основываясь на лайках/дислайках к этой статье.
+11)Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье.
+
+
+      from news.models import *
+1)
+>>> u1=User.objects.create_user(username='Pavel')
+>>> u2=User.objects.create_user(username='Vasiliy')
+>>> u3=User.objects.create_user(username='Evgeniy')
+
+2)
+>>> Author.objects.create(authorUser=u1)
+
+>>> Author.objects.create(authorUser=u2)
+
+>>> Author.objects.create(authorUser=u3)
+
+3)
+>>> Category.objects.create(name='Global Net')
+
+>>> Category.objects.create(name='War')
+
+>>> Category.objects.create(name='IT')
+
+>>> Category.objects.create(name='Business Portal')
+
+4)
+>>> author1=Author.objects.get(id=1)
+>>> author2=Author.objects.get(id=2)
+>>> author3=Author.objects.get(id=3)
+
+>>> Post.objects.create(author=author1,categoryType='AR',title='Когда «Москвич 3» можно будет купить на самом деле?',text='Первые партии кроссоверов «Москвич 3»н
+ачали поступать к столичным дилерам, но для приобретения в розницу новинка будет доступна только в следующем месяце, передает «РИА Новости» со ссылкой на отрасле
+вой источник.')
+
+>>> Post.objects.create(author=author2,categoryType='AR',title='Власть показала, чем обернулись попытки Запада надавить на Россию',text='Россия выдержала удары п
+о экономике со стороны коллективного Запада и готова продолжать противостояние. Так эксперты оценивают заявления премьер-министра РФ')
+
+>>> Post.objects.create(author=author3,categoryType='NW',title='Десять вакансий в IT, киберспортивной сфере и гейминге — тестировщик мобильной игры, организаторт
+урниров и разработчик RPG-шутера',text='В этой подборке вакансий из мира киберспорта и гейминга для пользователей Cybersport.ru мы снова расскажем о десяти предл
+ожениях начать работать в игровой сфере. Среди них есть возможности войти в команду разработчиков шутера, стать тестировщиком мобильных игр и попробовать себя вг
+еймдизайне RPG.')
+
+5)
+>>> Post.objects.get(id=1).postCategory.add(Category.objects.get(id=4))
+>>> Post.objects.get(id=2).postCategory.add(Category.objects.get(id=2))
+>>> Post.objects.get(id=3).postCategory.add(Category.objects.get(id=4))
+>>> Post.objects.get(id=3).postCategory.add(Category.objects.get(id=3))
+
+6)
+>>> Comment.objects.create(commentPost=Post.objects.get(id=1),commentUser=Author.objects.get(id=1).authorUser,text='Some Text')
+<Comment: Comment object (1)>
+>>> Comment.objects.create(commentPost=Post.objects.get(id=2),commentUser=Author.objects.get(id=3).authorUser,text='Some Text')
+<Comment: Comment object (2)>
+>>> Comment.objects.create(commentPost=Post.objects.get(id=2),commentUser=Author.objects.get(id=1).authorUser,text='Some Text')
+<Comment: Comment object (3)>
+>>> Comment.objects.create(commentPost=Post.objects.get(id=3),commentUser=Author.objects.get(id=2).authorUser,text='Some Text')
+<Comment: Comment object (4)>
+
+7)
+
+Comment.objects.get(id=1).like()
+>>> Comment.objects.get(id=1).like()
+>>> Comment.objects.get(id=1).like()
+>>> Comment.objects.get(id=1).like()
+>>> Comment.objects.get(id=2).like()
+>>> Comment.objects.get(id=2).like()
+>>> Comment.objects.get(id=1).dislike()
+>>> Comment.objects.get(id=2).dislike()                                   
+>>> Comment.objects.get(id=3).like()
+>>> Comment.objects.get(id=3).like()
+>>> Comment.objects.get(id=3).like()
+>>> Comment.objects.get(id=3).like()
+>>> Comment.objects.get(id=3).like()
+>>> Comment.objects.get(id=3).dislike()
+
+8)
+
+>>> a1=Author.objects.get(id=1)
+>>> a2=Author.objects.get(id=2)
+>>> a3=Author.objects.get(id=3)
+>>> a1.update_rating()
+>>> a2.update_rating() 
+>>> a3.update_rating()
+
+9)
+a = Author.objects.order_by('-ratingAuthor')[:1]
+
+10)
+>>> Post.objects.order_by('-rating').values('dateCreation', 'author__authorUser__username', 'rating', 'title','comment','text')[0]
+{'dateCreation': datetime.datetime(2022, 12, 28, 20, 22, 39, 315044, tzinfo=datetime.timezone.utc), 'author__authorUser__username': 'Pavel', 'rating': 0, 'title'
+: 'Когда «Москвич 3» можно будет купить на самом деле?', 'comment': 1, 'text': 'Первые партии кроссоверов «Москвич 3»начали поступать к столичным дилерам, но для
+ приобретения в розницу новинка будет доступна только в следующем месяце, передает «РИА Новости» со ссылкой на отраслевой источник.'}
+>>> p.comment_set.all().values('dateCreation', 'commentUser', 'rating', 'text')
+
+11)
+>>> p=Post.objects.get(id=1)
+>>> p.comment_set.all()
+<QuerySet [<Comment: Comment object (1)>]>
+>>> p.comment_set.all().values('dateCreation', 'commentUser', 'rating', 'text')
+<QuerySet [{'dateCreation': datetime.datetime(2022, 12, 28, 20, 25, 55, 658105, tzinfo=datetime.timezone.utc), 'commentUser': 1, 'rating': 3, 'text': 'Some Text'
+}]>
